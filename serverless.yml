@@ -4,7 +4,7 @@ provider:
   name: aws
   runtime: python3.7
   stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-east-1'}
+  region: ${opt:region, 'ap-southeast-1'}
   environment:
     STAGE: "${self:provider.stage}"
   tags:
@@ -49,8 +49,6 @@ custom:
   table:
     arn: { "Fn::Join": [":", ["arn:aws:dynamodb:${self:provider.region}", { "Ref": "AWS::AccountId" }, "table/aws-scheduler-events-v2-${self:provider.stage}" ] ]  }
   scheduleFunction: "aws-scheduler-v2-${self:provider.stage}-scheduler"
-  pythonRequirements:
-    pythonBin: python3
 
 functions:
   consumer:

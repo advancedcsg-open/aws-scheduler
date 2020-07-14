@@ -33,6 +33,8 @@ def schedule_events(events):
     for event in events:
         events_by_id[event['sk']] = event
 
+        # check for cronjob using croniter
+
         delta = datetime.fromisoformat(event['date']) - datetime.utcnow()
         delay = delta.total_seconds()
         rounded_delay = math.ceil(delay)
