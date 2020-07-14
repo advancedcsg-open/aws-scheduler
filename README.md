@@ -167,4 +167,4 @@ Contributions are welcome, both issues and code. Get in touch at twitter [@micha
 - limitation of message size (10kb), also explain why
 - secure the PoC with test
 - add a safe guard that pulls messages from dead letter queues back into the circuit
-- handling for messages that can't be utf-8 encoded
+- handling for messages that can't be utf-8 encoded.

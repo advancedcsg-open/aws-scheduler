@@ -1,0 +1,29 @@
+{
+  "name": "aws-scheduler",
+  "version": "1.0.0",
+  "description": "Serverless Schedular for scheduling tasks on AWS",
+  "main": "index.js",
+  "dependencies": {
+    "serverless-python-requirements": "^5.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/advancedcsg-open/aws-scheduler.git"
+  },
+  "keywords": [
+    "AWS",
+    "Schedular",
+    "Serverless",
+    "framework"
+  ],
+  "author": "jaimin.patel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/advancedcsg-open/aws-scheduler/issues"
+  },
+  "homepage": "https://github.com/advancedcsg-open/aws-scheduler#readme"
+}
