@@ -29,7 +29,7 @@ def run():
             event = {k: deserializer.deserialize(v) for k, v in item.items()}
             items.append({
                 'pk': event['pk'],
-                'last_date': event['last_date']
+                'last_date': event['last_date'],
                 'cronExpression': event['cronExpression'],
                 'payload': event['payload'],
                 'target': event['target']
@@ -47,8 +47,8 @@ def run():
         print('Items needs to be executed: ')
         print(items_to_execute)
         for item in items_to_execute:
-            response = cron_table.update_item({
-                Key: {
+            response = cron_table.update_item(
+                Key= {
                     'pk': item['pk']
                 },
                 UpdateExpression="set last_date=:l",
@@ -56,7 +56,7 @@ def run():
                     ':l': current_date_str,
                 },
                 ReturnValues="UPDATED_NEW"
-            })
+            )
             # send the item to schedule
 
 
