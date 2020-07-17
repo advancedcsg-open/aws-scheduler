@@ -20,6 +20,10 @@ def handle(events):
             publish_to_failure_topic(event, 'date is required')
             print('error.date_required %s' % (json.dumps({'event': event})))
             continue
+        if ('eventIdentifier' not in event or 'application' not in event):
+            publish_to_failure_topic(event, 'date is required')
+            print('error.event_id_app_required %s' % (json.dumps({'event': event})))
+            continue
         if 'payload' not in event:
             publish_to_failure_topic(event, 'payload is required')
             print('error.payload_required %s' % (json.dumps({'event': event})))
@@ -37,7 +41,9 @@ def handle(events):
         if 'cronExpression' in event:
             # It's cron event - store it in cron_table
             event_wrapper = {
-                'pk': event['eventIdentifier'],
+                'pk': f"{event['application']}-{event['eventIdentifier']}",
+                'eventIdentifier': event['eventIdentifier'],
+                'application': event['application'],
                 'target': event['target'],
                 'payload': event['payload'],
                 'cronExpression': event['cronExpression'],
@@ -53,6 +59,8 @@ def handle(events):
                 # the id separator has to be an underscore, because sqs IDs can only contain alphanumeric characters, hyphens and underscores
                 'sk': f"{int(date.timestamp() * 1000)}_{str(uuid4())}",
                 'time_to_live': int(date.timestamp() + 10 * 60),  # wait at least 10 minutes after the event should have gone out
+                'eventIdentifier': event['eventIdentifier'],
+                'application': event['application'],
                 'date': event['date'],
                 'payload': event['payload'],
                 'target': event['target']
@@ -74,7 +82,7 @@ def handle(events):
                 to_be_scheduled.append(event_wrapper)
             else:
                 to_be_saved.append(event_wrapper)
-            print('event.consumed %s' % (json.dumps({'id': event_wrapper['sk'], 'timestamp': str(received)})))
+            print('event.consumed %s' % (json.dumps({'id': event_wrapper['eventIdentifier'], 'application': event_wrapper['application'], 'timestamp': str(received)})))
 
     # we must save before delegating, because the downstream function will access the DB entity
     save_with_retry(to_be_saved)
