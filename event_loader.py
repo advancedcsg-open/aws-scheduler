@@ -31,6 +31,8 @@ def run():
             event = {k: deserializer.deserialize(v) for k, v in item.items()}
             items.append({
                 'pk': event['pk'],
+                'eventIdentifier': event['eventIdentifier'],
+                'application': event['application'],
                 'last_date': event['last_date'],
                 'cronExpression': event['cronExpression'],
                 'payload': event['payload'],
