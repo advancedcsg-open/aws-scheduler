@@ -31,7 +31,7 @@ def schedule_cron_events(events):
         try:
             publish_sns(item['target'], item['payload'])
             now = datetime.utcnow()
-            print('cron event.emitted %s' % (json.dumps({'pk': item['pk'], 'timestamp': str(now), 'scheduled': str(item['cronExpression'])})))
+            print('cron event.emitted %s' % (json.dumps({'application': item['application'], 'eventIdentifier': item['eventIdentifier'], 'timestamp': str(now), 'scheduled': str(item['cronExpression'])})))
         except Exception as e:
             print(f"Failed to emit cron event {item['pk']}: {str(e)}")
             failed_cron_event.append(item)   
@@ -45,7 +45,7 @@ def schedule_cron_events(events):
                 }
                 publish_sns(event.failure_topic, json.dumps(payload))
         except Exception as e:
-            print(f"Failed to emit event {event['pk']} to failure topic: {str(e)}") 
+            print(f"Failed to emit event {event['eventIdentifier']} to failure topic: {str(e)}") 
 
 
 def schedule_events(events):
