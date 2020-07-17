@@ -6,8 +6,9 @@ from croniter import croniter
 from boto3.dynamodb.types import TypeDeserializer
 
 from lambda_client import invoke_lambda
-from model import client, table_name, cron_table_name
+from model import client, table_name, cron_table_name, cron_table
 from util import make_chunks
+from scheduler import schedule_cron_events
 
 deserializer = TypeDeserializer()
 
@@ -24,6 +25,7 @@ def run():
         items = []
         items_to_execute = []
         current_date = datetime.utcnow().replace(second=0, microsecond=0)
+        next_date = ''
         current_date_str = datetime.utcnow().replace(second=0, microsecond=0).isoformat()
         for item in page.get('Items', []):
             event = {k: deserializer.deserialize(v) for k, v in item.items()}
@@ -38,12 +40,14 @@ def run():
 
         for item in items:
             if croniter.is_valid(item['cronExpression']):
-                iter = croniter(item['cronExpression'], current_date)
+                iter = croniter(item['cronExpression'], datetime.fromisoformat(item['last_date']))
                 next_date = iter.get_next(datetime)
-                if (next_date - current_date).total_seconds() <= 120:
+                while next_date < current_date:
+                    next_date = iter.get_next(datetime)
+                if (next_date - current_date).total_seconds() <= 60:
+                    item['next_date'] = next_date.isoformat()
                     items_to_execute.append(item)
 
-        cron_table = dynamodb.Table(cron_table_name)
         print('Items needs to be executed: ')
         print(items_to_execute)
         for item in items_to_execute:
@@ -53,14 +57,11 @@ def run():
                 },
                 UpdateExpression="set last_date=:l",
                 ExpressionAttributeValues={
-                    ':l': current_date_str,
+                    ':l': item['next_date'],
                 },
                 ReturnValues="UPDATED_NEW"
             )
-            # send the item to schedule
-
-
-
+        schedule_cron_events(items_to_execute)
 
     for page in client.get_paginator('query').paginate(
             TableName=table_name,
