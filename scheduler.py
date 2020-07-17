@@ -25,6 +25,29 @@ def handle(event_ids):
     schedule_events(events)
 
 
+def schedule_cron_events(events):
+    failed_cron_event = []
+    for item in events:
+        try:
+            publish_sns(item['target'], item['payload'])
+            now = datetime.utcnow()
+            print('cron event.emitted %s' % (json.dumps({'pk': item['pk'], 'timestamp': str(now), 'scheduled': str(item['cronExpression'])})))
+        except Exception as e:
+            print(f"Failed to emit cron event {item['pk']}: {str(e)}")
+            failed_cron_event.append(item)   
+
+    for event in failed_cron_event:
+        try:
+            if 'failure_topic' not in event:
+                payload = {
+                    'error': 'ERROR',
+                    'event': event['payload']
+                }
+                publish_sns(event.failure_topic, json.dumps(payload))
+        except Exception as e:
+            print(f"Failed to emit event {event['pk']} to failure topic: {str(e)}") 
+
+
 def schedule_events(events):
     successful_ids = []
     failed_ids = []
