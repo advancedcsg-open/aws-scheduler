@@ -21,8 +21,8 @@ jobs:
             ${{ runner.os }}-
       - name: Intalling dependencies
         run: |
-          npm install serverless
           npm ci
+          npm install serverless
       - name: Setting up AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
