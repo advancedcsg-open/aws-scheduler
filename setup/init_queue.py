@@ -2,7 +2,7 @@ import sys
 
 import boto3
 
-client = boto3.client('sqs')
+client = boto3.client('sqs', region_name='eu-west-2')
 
 
 if __name__ == '__main__':

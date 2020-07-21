@@ -2,7 +2,7 @@ import sys
 
 import boto3
 
-client = boto3.client('sns')
+client = boto3.client('sns', region_name='eu-west-2')
 
 
 if __name__ == '__main__':
