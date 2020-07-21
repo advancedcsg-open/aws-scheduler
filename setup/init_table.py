@@ -3,7 +3,7 @@ import time
 
 import boto3
 
-client = boto3.client('dynamodb')
+client = boto3.client('dynamodb', region_name='ap-southeast-1')
 
 
 def create_events_table():
@@ -29,7 +29,15 @@ def create_events_table():
             {
                 'AttributeName': 'sk',
                 'AttributeType': 'S'
-            }
+            },
+            {
+                'AttributeName': 'application',
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': 'eventIdentifier',
+                'AttributeType': 'S'
+            },
         ],
         KeySchema=[
             {
@@ -40,6 +48,24 @@ def create_events_table():
                 'AttributeName': 'sk',
                 'KeyType': 'RANGE'
             }
+        ],
+        GlobalSecondaryIndexes=[
+            {
+                'IndexName': 'appEventIndex',
+                'KeySchema': [
+                    {
+                        'AttributeName': 'application',
+                        'KeyType': 'HASH'
+                    },
+                    {
+                        'AttributeName': 'eventIdentifier',
+                        'KeyType': 'RANGE'
+                    },
+                ],
+                'Projection': {
+                    'ProjectionType': 'ALL'
+                }
+            },
         ],
         BillingMode='PAY_PER_REQUEST',
     )
