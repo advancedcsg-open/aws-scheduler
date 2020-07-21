@@ -115,6 +115,9 @@ functions:
     events:
       - http: ANY /
       - http: 'ANY {proxy+}'
+    environment:
+      TOPIC_URL: "${self:custom.inbound.arn}"
+  
 
 plugins:
   - serverless-python-requirements
