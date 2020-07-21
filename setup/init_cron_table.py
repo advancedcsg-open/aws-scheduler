@@ -3,7 +3,7 @@ import time
 
 import boto3
 
-client = boto3.client('dynamodb')
+client = boto3.client('dynamodb', region_name='eu-west-2')
 
 
 def create_events_table():
