@@ -20,7 +20,6 @@ var/
 # Serverless directories
 .serverless
 .idea
-package-lock.json
 venv
 node_modules
 a_*
