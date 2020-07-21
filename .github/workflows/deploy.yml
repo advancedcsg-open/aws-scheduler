@@ -1,0 +1,35 @@
+---
+name: Scheduler Deployment
+on:
+  push:
+    branches: [feat/*,master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Restoring npm cache...
+        uses: actions/cache@v2.0.0
+        env:
+          cache-name: npm
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.cache-name}}-
+            ${{ runner.os }}-
+      - name: Intalling dependencies
+        run: |
+          npm install -g serverless
+          npm ci
+      - name: Setting up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ENGINEERING_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.ENGINEERING_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+      - name: Deploying aws-scheduler to AWS account
+        if: github.ref == 'refs/heads/master'
+        run: |
+          serverless deploy --stage prod
