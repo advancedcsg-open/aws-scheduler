@@ -36,4 +36,4 @@ jobs:
       - name: Deploying aws-scheduler to DEV
         if: github.ref == 'refs/heads/master'
         run: |
-          serverless deploy --stage prod
+          npx serverless deploy --stage prod
