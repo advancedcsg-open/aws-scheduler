@@ -4,12 +4,14 @@ provider:
   name: aws
   runtime: python3.8
   stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'ap-southeast-1'}
+  region: ${opt:region, 'eu-west-2'}
   environment:
     STAGE: "${self:provider.stage}"
   tags:
     department: research
     project: aws-scheduler
+  apiKeys:
+    - name: api-key-${self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -23,6 +25,8 @@ provider:
         - dynamodb:GetShardIterator
       Resource:
         - "${self:custom.table.arn}"
+        - "${self:custom.cron_table.arn}"
+        - "Fn::Join": ["/", ["${self:custom.table.arn}", "index/*"]]
     - Effect: Allow
       Action:
         - lambda:InvokeFunction
@@ -38,6 +42,16 @@ provider:
       Resource: "*"
 
 custom:
+  customDomain:
+    domainName: platformschedular.oneadvanced.io
+    stage: prod
+    basePath: ''
+    certificateName: 'platformschedular.oneadvanced.io'
+    createRoute53Record: true
+    endpointType: 'regional'
+    securityPolicy: tls_1_2
+    apiType: rest
+    autoDomain: false
   wsgi:
     app: app.app
     packRequirements: false
@@ -52,6 +66,8 @@ custom:
     url: { "Fn::Join": ["/", ["https://sqs.${self:provider.region}.amazonaws.com", { "Ref": "AWS::AccountId" }, "${self:custom.queue.name}" ] ]  }
   table:
     arn: { "Fn::Join": [":", ["arn:aws:dynamodb:${self:provider.region}", { "Ref": "AWS::AccountId" }, "table/aws-scheduler-events-v2-${self:provider.stage}" ] ]  }
+  cron_table:
+    arn: { "Fn::Join": [":", ["arn:aws:dynamodb:${self:provider.region}", { "Ref": "AWS::AccountId" }, "table/aws-scheduler-cron-events-v2-${self:provider.stage}" ] ]  }
   scheduleFunction: "aws-scheduler-v2-${self:provider.stage}-scheduler"
 
 functions:
@@ -113,13 +129,20 @@ functions:
   app:
     handler: wsgi.handler
     events:
-      - http: ANY /
-      - http: 'ANY {proxy+}'
+      - http: 
+          path: /
+          method: ANY
+          private: true
+      - http: 
+          path: '{proxy+}'
+          method: ANY
+          private: true
     environment:
       TOPIC_URL: "${self:custom.inbound.arn}"
   
 
 plugins:
+  - serverless-domain-manager
   - serverless-python-requirements
   - serverless-wsgi
 
