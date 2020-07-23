@@ -8,86 +8,103 @@ This project provides a solution to schedule large amounts of point in time even
 
 The two interfaces are two SNS topics. One for input and one for output. You send a scheduling payload to the input topic and at the specified datetime you will receive your data at the output topic. See the Usage section on how to attach your functions.
 
-![Service Overview](https://github.com/bahrmichael/aws-scheduler/raw/master/pictures/overview.png)
+![Service Overview](https://github.com/advancedcsg-open/aws-scheduler/raw/master/pictures/overview.png)
 
 ## Usage
 
 A quick start project is available at [aws-scheduler-testing](https://github.com/bahrmichael/aws-scheduler-testing).
 
 ### Setup
-First of all you need an output topic that we can publish events to once the scheduled datetime arrives. To do this run `python setup/init_output_topic.py <stage>`. This will create a topic called `scheduler-output-<stage>` and grant our account the right to publish messages. You can see the added policy below.
+First of all you need an output topic that we can publish events to once the scheduled datetime arrives. To do this run `python setup/init_output_topic.py <stage> 529317453916`. This will create a topic called `scheduler-output-<stage>` and grant our account the right to publish messages. You can see the added policy below.
 
 ```json
 {
-  "Sid": "scheduler-output-<stage>-publish-access",
+  "Sid": "scheduler-output-v2-prod-publish-access",
   "Effect": "Allow",
   "Principal": {
-    "AWS": "arn:aws:sts::256608350746:assumed-role/aws-scheduler-prod-us-east-1-lambdaRole/aws-scheduler-prod-emitter"
+    "AWS": "arn:aws:iam::529317453916:root"
   },
   "Action": "SNS:Publish",
-  "Resource": "arn:aws:sns:us-east-1:256608350746:scheduler-output-<stage>"
+  "Resource": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod"
 }
 ``` 
 
-If you don't want to grant our emitter the right to publish, you can pass your own emitter role as a third argument.
+The output of the script should be something like this. Your topic must be in eu-west-2 (London) region.
 
 ```
 Creating topic scheduler-output-<stage>
-Created topic scheduler-output-<stage> with arn arn:aws:sns:us-east-1:<your-account-id>:scheduler-output-<stage>
-Granting publish rights to scheduler-output-<stage> for role arn:aws:sts::256608350746:assumed-role/aws-scheduler-prod-us-east-1-lambdaRole/aws-scheduler-prod-emitter
+Created topic scheduler-output-<stage> with arn arn:aws:sns:eu-west-2:<your-account-id>:scheduler-output-<stage>
+Granting publish rights to scheduler-output-<stage> for role arn:aws:sts::529317453916:assumed-role/aws-scheduler-prod-us-east-1-lambdaRole/aws-scheduler-prod-emitter
 Done
 ```
 
 Write down the ARN of your output topic as you will need it for the input events.
 
-Rerun this process with the command `python setup/init_failure_topic.py <stage>` to create a topic where the service can publish errors.
+Rerun this process with the command `python setup/init_failure_topic.py <stage> 529317453916` to create a topic where the service can publish errors.
 
 ### Input
 To schedule a trigger you have to publish an event which follows the structure below to the ARN of the input topic. You can find the ARN of our service in the SAAS Offer section.
 
+To create date event, request body should be like this:
+
 ```json
 {
-  "date": "utc timestamp following ISO 8601",
-  "target": "arn of your sns output topic",
-  "user": "some way we can get in touch with you",
-  "payload": "any string payload",
-  "failure_topic": "arn of an sns topic where the service can publish errors"
+  "date": "2020-07-23T10:45:45.919071",
+  "target": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod",
+  "user": "jimmy@jimmy",
+  "eventIdentifier": "reports",
+  "application": "chr",
+  "payload": "hi. i am from date event.",
+  "failure_topic": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod"
 }
 ```
+
+To create cron job event, request body should be like this:
+
+```json
+{
+  "cronExpression": "*/3 * * * *",
+  "payload": "hello. I am from 3 mins.",
+  "eventIdentifier": "otherAccountCheck2",
+  "application": "chr",
+  "target": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod",
+  "failure_topic": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod"
+}
+```
+
 
 All fields except `failure_topic` are mandatory. Please make sure that the `payload` can be utf-8 encoded. If you submit an event that does not follow the spec, it will published to the `failure_topic`.
 
 SNS messages must be strings. First string encode the json structure and then publish it to the input topic.
+The demo create date event curl will be:
 
-```python
-# Python example
-import json
-import boto3
-
-client = boto3.client('sns')
-
-event = {
-          "date": "2019-07-27T12:20:24.919071",
-          "target": "arn:aws:sns:us-east-1:256608350746:scheduler-output-prod",
-          "user": "Twitter @michabahr",
-          "payload": "46607451-3e67-49bc-972b-425c150c5456"
-        }
-
-input_topic = 'arn:aws:sns:us-east-1:256608350746:scheduler-input-prod'
-client.publish(TopicArn=input_topic, Message=json.dumps(event))
+```bash
+curl --location --request POST 'https://platformschedular.oneadvanced.io/api/schedule' \
+--header 'x-api-key: ****' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "cronExpression": "*/3 * * * *",
+  "payload": "hello. I am from 3 mins.",
+  "eventIdentifier": "otherAccountCheck2",
+  "application": "chr",
+  "target": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod",
+  "failure_topic": "arn:aws:sns:eu-west-2:069705096352:scheduler-output-v2-prod"
+}'
 ```
 
-So far there is no batch publishing available for SNS. Make sure the event stays within the 256KB limit of SNS. We recommend that you only submit IDs and don't transfer any real data to the service.
+So far there is no batch publishing available for SNS. Make sure the event stays within the *256KB* limit of SNS. We recommend that you only submit IDs and don't transfer any real data to the service.
 
 ### Output
 Once the datetime specified in the payload is reached, the service will publish the content of the event field to your output topic. You can attach an AWS Lambda function to your topic to process the events. 
+
+# Architecture and Deployment stuff for serverless scheduler
 
 ## Deploy it yourself
 This section explains how you can deploy the service yourself. Once set up use it like shown above.
 
 The following picture shows you the structure of the service.
 
-![Detailed Overview](https://github.com/bahrmichael/aws-scheduler/raw/master/pictures/detailed.png)
+![Detailed Overview](https://github.com/advancedcsg-open/aws-scheduler/raw/master/pictures/detailed.png)
 
 ### Prerequisites
 You must have the following tools installed:
@@ -163,6 +180,7 @@ Contributions are welcome, both issues and code. Get in touch at twitter [@micha
 ```
 
 ## TODOs
+- adding get all events for specific application
 - adjust pictures to show failure queue
 - limitation of message size (10kb), also explain why
 - secure the PoC with test
