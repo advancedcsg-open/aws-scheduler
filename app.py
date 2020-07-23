@@ -2,6 +2,7 @@ from flask import Flask, request
 from sns_client import publish_sns
 from model import cron_table, table
 from boto3.dynamodb.conditions import Key
+from croniter import croniter
 
 import os
 import json
@@ -105,6 +106,11 @@ def deleteTask(app, id):
 
 
 def validateEvent(event):
+    if 'cronExpression' in event:
+        if not(croniter.is_valid(event['cronExpression'])):
+            print('error.event_id_app_required %s' %
+                (json.dumps({'event': event})))
+            return "cron expression is not valid"
     if ('eventIdentifier' not in event or 'application' not in event):
         print('error.event_id_app_required %s' %
               (json.dumps({'event': event})))
