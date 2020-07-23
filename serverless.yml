@@ -3,7 +3,7 @@ service: aws-scheduler-v2
 provider:
   name: aws
   runtime: python3.8
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'eu-west-2'}
   environment:
     STAGE: "${self:provider.stage}"
@@ -23,6 +23,7 @@ provider:
         - dynamodb:Query
         - dynamodb:GetItem
         - dynamodb:GetShardIterator
+        - dynamodb:UpdateItem
       Resource:
         - "${self:custom.table.arn}"
         - "${self:custom.cron_table.arn}"
@@ -36,6 +37,11 @@ provider:
         - SQS:SendMessage
       Resource:
       - "${self:custom.queue.arn}"
+    - Effect: Allow
+      Action:
+        - SNS:Publish
+      Resource:
+      - "*"
     - Effect: Allow
       Action:
         - cloudwatch:PutMetricData
