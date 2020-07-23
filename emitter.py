@@ -57,6 +57,8 @@ def handle(items):
             time.sleep(delay)
 
         try:
+            print('from emitter : publishing item : ')
+            print(item)
             publish_sns(item['target'], item['payload'])
             now = datetime.utcnow()
             print('event.emitted %s' % (json.dumps({'sk': event_id, 'timestamp': str(now), 'scheduled': str(scheduled_execution)})))
