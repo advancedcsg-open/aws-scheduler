@@ -80,7 +80,7 @@ The demo create date event curl will be:
 
 ```bash
 curl --location --request POST 'https://platformschedular.oneadvanced.io/api/schedule' \
---header 'x-api-key: YbBT0L2NvI9VrbPF0wtzL9KhUrIAdphwtotMdBIa' \
+--header 'x-api-key: ****' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "cronExpression": "*/3 * * * *",
