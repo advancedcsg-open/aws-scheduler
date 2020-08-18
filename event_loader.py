@@ -36,12 +36,14 @@ def run():
                 'last_date': event['last_date'],
                 'cronExpression': event['cronExpression'],
                 'payload': event['payload'],
-                'target': event['target']
+                'target': event['target'],
+                'start_date': event['start_date'],
             })
         print(items)
 
         for item in items:
-            if croniter.is_valid(item['cronExpression']):
+            print(f"current date time : {datetime.utcnow()}  {datetime.fromisoformat(item['start_date'])}")
+            if croniter.is_valid(item['cronExpression']) and datetime.fromisoformat(item['start_date']) < datetime.utcnow():
                 iter = croniter(item['cronExpression'], datetime.fromisoformat(item['last_date']))
                 next_date = iter.get_next(datetime)
                 while next_date < current_date:

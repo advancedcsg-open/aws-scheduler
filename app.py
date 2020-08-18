@@ -107,6 +107,10 @@ def deleteTask(app, id):
 
 def validateEvent(event):
     if 'cronExpression' in event:
+        # if 'start_date' not in event:
+        #     print('error.start_date %s' %
+        #         (json.dumps({'event': event})))    
+        #     return "start_date is required."
         if not(croniter.is_valid(event['cronExpression'])):
             print('error.event_id_app_required %s' %
                 (json.dumps({'event': event})))

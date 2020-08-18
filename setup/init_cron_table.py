@@ -37,6 +37,13 @@ def create_events_table():
     )
     print(f'Creating cron table ...')
     client.get_waiter('table_exists').wait(TableName=name)
+    client.update_time_to_live(
+        TableName=name,
+        TimeToLiveSpecification={
+            'Enabled': True,
+            'AttributeName': 'time_to_live'
+        }
+    )
     print('%s created' % name)
 
 

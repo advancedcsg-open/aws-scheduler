@@ -17,20 +17,20 @@ def handle(events):
     cron_to_be_saved = []
     for event in events:
         if 'date' not in event and 'cronExpression' not in event:
-            publish_to_failure_topic(event, 'date is required')
             print('error.date_required %s' % (json.dumps({'event': event})))
+            publish_to_failure_topic(event, 'date is required')
             continue
         if ('eventIdentifier' not in event or 'application' not in event):
-            publish_to_failure_topic(event, 'date is required')
             print('error.event_id_app_required %s' % (json.dumps({'event': event})))
+            publish_to_failure_topic(event, 'date is required')
             continue
         if 'payload' not in event:
-            publish_to_failure_topic(event, 'payload is required')
             print('error.payload_required %s' % (json.dumps({'event': event})))
+            publish_to_failure_topic(event, 'payload is required')
             continue
         if 'target' not in event:
-            publish_to_failure_topic(event, 'target is required')
             print('error.target_required %s' % (json.dumps({'event': event})))
+            publish_to_failure_topic(event, 'target is required')
             continue
 
         if not isinstance(event['payload'], str):
@@ -40,15 +40,22 @@ def handle(events):
 
         if 'cronExpression' in event:
             # It's cron event - store it in cron_table
+            if 'start_date' not in event:
+                event['start_date'] = received.replace(second=0, microsecond=0).isoformat()
             event_wrapper = {
                 'pk': f"{event['application']}-{event['eventIdentifier']}",
                 'eventIdentifier': event['eventIdentifier'],
                 'application': event['application'],
+                'start_date': event['start_date'],
                 'target': event['target'],
                 'payload': event['payload'],
                 'cronExpression': event['cronExpression'],
                 'last_date': received.replace(second=0, microsecond=0).isoformat(),
             }
+            if 'end_date' in event:
+                event_wrapper['end_date'] = event['end_date']
+                date = datetime.fromisoformat(event['end_date'])
+                event_wrapper['time_to_live'] = int(date.timestamp() + 10 * 60)
             if 'failure_topic' in event:
                 event_wrapper['failure_topic'] = event['failure_topic']
             cron_to_be_saved.append(event_wrapper)

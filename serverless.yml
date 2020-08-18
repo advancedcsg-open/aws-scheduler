@@ -46,6 +46,12 @@ provider:
       Action:
         - cloudwatch:PutMetricData
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource: "*"
 
 custom:
   customDomain:
