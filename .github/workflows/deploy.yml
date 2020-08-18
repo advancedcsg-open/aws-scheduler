@@ -1,8 +1,8 @@
 ---
 name: Scheduler Deployment
 on:
-  push:
-    branches: [feat/*,master]
+  # push:
+  #   branches: [feat/*,master]
 
 jobs:
   deploy:
