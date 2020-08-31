@@ -46,14 +46,16 @@ def getTask():
     else:
         identifier = f"{app}-{eid}"
         items = cron_table.query(
-            KeyConditionExpression=Key('pk').eq(identifier)
+            KeyConditionExpression=Key('pk').eq(identifier),
+            ProjectionExpression='#d, target, #u, eventIdentifier, application, failure_topic, payload',
+            ExpressionAttributeNames={'#d': 'date', '#u': 'user'}
         ).get('Items', [])
         date_items = table.query(
             IndexName='appEventIndex',
             KeyConditionExpression=Key('application').eq(
                 app) & Key('eventIdentifier').eq(eid),
-            ProjectionExpression='#d, target, #u, eventIdentifier, application, failure_topic, payload',
-            ExpressionAttributeNames={'#d': 'date', '#u': 'user'}
+            ProjectionExpression='#d, target, eventIdentifier, application, failure_topic, payload',
+            ExpressionAttributeNames={'#d': 'date'}
         ).get('Items', [])
         if len(items) == 0 and len(date_items) > 0:
             items = date_items

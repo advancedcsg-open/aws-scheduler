@@ -44,7 +44,7 @@ def handle(events):
                 event['start_date'] = received.replace(second=0, microsecond=0).isoformat()
             event_wrapper = {
                 'pk': f"{event['application']}-{event['eventIdentifier']}",
-                'eventIdentifier': event['eventIdentifier'],
+                'eventIdentifier': str(event['eventIdentifier']),
                 'application': event['application'],
                 'start_date': event['start_date'],
                 'target': event['target'],
@@ -66,7 +66,7 @@ def handle(events):
                 # the id separator has to be an underscore, because sqs IDs can only contain alphanumeric characters, hyphens and underscores
                 'sk': f"{int(date.timestamp() * 1000)}_{str(uuid4())}",
                 'time_to_live': int(date.timestamp() + 10 * 60),  # wait at least 10 minutes after the event should have gone out
-                'eventIdentifier': event['eventIdentifier'],
+                'eventIdentifier': str(event['eventIdentifier']),
                 'application': event['application'],
                 'date': event['date'],
                 'payload': event['payload'],
@@ -76,13 +76,14 @@ def handle(events):
             if 'failure_topic' in event:
                 event_wrapper['failure_topic'] = event['failure_topic']
 
-            if 'user' not in event:
-                if os.environ.get('ENFORCE_USER'):
-                    publish_to_failure_topic(event, 'user is required')
-                    print('error.event_has_no_user %s' % (json.dumps({'event': event})))
-                    continue
-            else:
+            if 'user' in event:
                 event_wrapper['user'] = event['user']
+            #     if os.environ.get('ENFORCE_USER'):
+            #         publish_to_failure_topic(event, 'user is required')
+            #         print('error.event_has_no_user %s' % (json.dumps({'event': event})))
+            #         continue
+            # else:
+            #     event_wrapper['user'] = event['user']
 
             # if the event has less than 10 minutes until execution, then fast track it
             if has_less_then_ten_minutes(event_wrapper['date']):

@@ -39,7 +39,6 @@ def run():
                 'target': event['target'],
                 'start_date': event['start_date'],
             })
-        print(items)
 
         for item in items:
             print(f"current date time : {datetime.utcnow()}  {datetime.fromisoformat(item['start_date'])}")
