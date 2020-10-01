@@ -47,7 +47,7 @@ def getTask():
         identifier = f"{app}-{eid}"
         items = cron_table.query(
             KeyConditionExpression=Key('pk').eq(identifier),
-            ProjectionExpression='#d, target, #u, eventIdentifier, application, failure_topic, payload',
+            ProjectionExpression='#d, target, #u, eventIdentifier, application, failure_topic, payload, start_date, end_date',
             ExpressionAttributeNames={'#d': 'date', '#u': 'user'}
         ).get('Items', [])
         date_items = table.query(

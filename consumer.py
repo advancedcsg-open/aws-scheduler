@@ -3,12 +3,13 @@ import math
 import os
 import time
 from datetime import datetime
+import pytz
 from uuid import uuid4
 
 from model import table, cron_table
 from scheduler import schedule_events
 from sns_client import publish_sns
-
+utc = pytz.utc
 
 def handle(events):
     received = datetime.utcnow()
@@ -55,7 +56,13 @@ def handle(events):
             if 'end_date' in event:
                 event_wrapper['end_date'] = event['end_date']
                 date = datetime.fromisoformat(event['end_date'])
-                event_wrapper['time_to_live'] = int(date.timestamp() + 10 * 60)
+                dt_utc = utc.localize(date)
+                dt_bst = dt_utc.astimezone(pytz.timezone('Europe/London'))
+                str_bst = dt_bst.isoformat()
+                len_bst = len(str_bst)
+                new_dt = str_bst[:len_bst - 6]
+                ndate = datetime.fromisoformat(new_dt)
+                event_wrapper['time_to_live'] = int(ndate.timestamp() + 10 * 60)
             if 'failure_topic' in event:
                 event_wrapper['failure_topic'] = event['failure_topic']
             cron_to_be_saved.append(event_wrapper)
