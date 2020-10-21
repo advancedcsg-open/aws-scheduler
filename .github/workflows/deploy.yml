@@ -2,7 +2,8 @@
 name: Scheduler Deployment
 on:
   push:
-    branches: [fix/*]
+    branches:
+      master
 
 jobs:
   deploy:
