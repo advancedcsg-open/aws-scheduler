@@ -37,7 +37,7 @@ def run():
                 'cronExpression': event['cronExpression'],
                 'payload': event['payload'],
                 'target': event['target'],
-                'end_date': event['end_date'],
+                'end_date': event['end_date'] if 'end_date' in event else "",
                 'start_date': event['start_date'],
             })
 
