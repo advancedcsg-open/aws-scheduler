@@ -47,8 +47,9 @@ def run():
                 next_date = iter.get_next(datetime)
                 while next_date < current_date:
                     next_date = iter.get_next(datetime)
-                if (next_date - current_date).total_seconds() <= 60 and next_date < datetime.fromisoformat(item['end_date']):
+                if (next_date - current_date).total_seconds() <= 60: # and next_date < datetime.fromisoformat(item['end_date']):
                     item['next_date'] = next_date.isoformat()
+                    print(f" item : {item}")
                     items_to_execute.append(item)
 
         print('Items needs to be executed: ')
