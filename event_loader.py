@@ -29,17 +29,18 @@ def run():
         current_date_str = datetime.utcnow().replace(second=0, microsecond=0).isoformat()
         for item in page.get('Items', []):
             event = {k: deserializer.deserialize(v) for k, v in item.items()}
-            items.append({
-                'pk': event['pk'],
-                'eventIdentifier': event['eventIdentifier'],
-                'application': event['application'],
-                'last_date': event['last_date'],
-                'cronExpression': event['cronExpression'],
-                'payload': event['payload'],
-                'target': event['target'],
-                'end_date': event['end_date'] if 'end_date' in event else "",
-                'start_date': event['start_date'],
-            })
+            if "eventIdentifier" in event:
+                items.append({
+                    'pk': event['pk'],
+                    'eventIdentifier': event['eventIdentifier'],
+                    'application': event['application'],
+                    'last_date': event['last_date'],
+                    'cronExpression': event['cronExpression'],
+                    'payload': event['payload'],
+                    'target': event['target'],
+                    'end_date': event['end_date'] if 'end_date' in event else "",
+                    'start_date': event['start_date'],
+                })
 
         for item in items:
             print(f"current date time : {datetime.utcnow()}  {datetime.fromisoformat(item['start_date'])}")
